@@ -62,6 +62,15 @@ export function timeToMinutes(t) {
   return h * 60 + m;
 }
 
+// Los clientes siempre son colombianos: agrega el indicativo +57 si el
+// número no lo trae ya, para armar enlaces de wa.me que abran el chat
+// correcto sin que el barbero tenga que escribirlo a mano.
+export function coWhatsappDigits(phone) {
+  const digits = (phone || "").replace(/\D/g, "");
+  if (digits.startsWith("57") && digits.length > 10) return digits;
+  return `57${digits}`;
+}
+
 // "14:05" (o "14:05:00") -> "2:05 PM"
 export function formatTime12h(t) {
   const [hStr, mStr] = t.split(":");

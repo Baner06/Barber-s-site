@@ -1,4 +1,4 @@
-import { supabase, formatCOP, todayISO, formatTime12h } from "./supabase-client.js";
+import { supabase, formatCOP, todayISO, formatTime12h, coWhatsappDigits } from "./supabase-client.js";
 
 const cfg = window.BARBER_CONFIG;
 document.getElementById("adminBrand").textContent = `${cfg.businessName} · Panel`;
@@ -123,7 +123,7 @@ async function loadAgenda() {
           ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
           ${a.status !== "completado" && a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
           ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
-          <a class="btn btn-ghost btn-sm" href="https://wa.me/${a.client_phone.replace(/\D/g,'')}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </div>
     </div>

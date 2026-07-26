@@ -8,7 +8,7 @@ window.BARBER_CONFIG = {
   businessName: "💈Luis Barber's💈",
   tagline: "Barbería de Luis Felipe Galvis",
   logoText: "LB", // Se usa si no hay logoUrl
-  logoUrl: "", // opcional: URL de una imagen de logo
+  logoUrl: "icons/icon-512.png", // logo oficial de Luis Barber's
   coverUrl: "", // opcional: URL de una foto de portada
   address: "TODO: escribe aquí tu dirección real",
   mapsUrl: "https://maps.google.com/?q=TU-DIRECCION-AQUI",
