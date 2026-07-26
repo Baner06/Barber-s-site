@@ -90,6 +90,26 @@ function updateDateLabel() {
   document.getElementById("dateLabel").textContent = label + d.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 }
 
+/* ---------------- Mensajes de WhatsApp (envío manual) ---------------- */
+function formatDateEsShort(dateStr) {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+}
+function waLink(phone, message) {
+  return `https://wa.me/${coWhatsappDigits(phone)}?text=${encodeURIComponent(message)}`;
+}
+function msgConfirmacionRecibida(a) {
+  return `Hola ${a.client_name}, tu cita en ${cfg.businessName} quedó registrada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} (${a.services?.name || "servicio"}). Cualquier cambio, escríbenos por este medio. ¡Te esperamos!`;
+}
+function msgAceptada(a) {
+  return `Hola ${a.client_name}, tu cita del ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} en ${cfg.businessName} ya fue confirmada. Solo queda esperar el día y la hora agendada. ¡Nos vemos pronto!`;
+}
+function msgCancelada(a) {
+  return `Hola ${a.client_name}, lamentamos informarte que tu cita del ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} en ${cfg.businessName} fue cancelada, ya que en este momento no podemos brindarte el servicio. Te pedimos disculpas por el inconveniente y con gusto te ayudamos a agendar un nuevo horario cuando gustes.`;
+}
+function msgYaCasi(a) {
+  return `Hola ${a.client_name}, te contamos que tu barbero ya casi termina con el cliente anterior. Tu cita es a las ${formatTime12h(a.start_time)} en ${cfg.businessName}, así que puedes ir acercándote. ¡Nos vemos en un momento!`;
+}
+
 /* ---------------- Agenda ---------------- */
 async function loadAgenda() {
   const host = document.getElementById("agendaList");
@@ -123,6 +143,7 @@ async function loadAgenda() {
           ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
           ${a.status !== "completado" && a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
           ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
+          <a class="btn btn-ghost btn-sm" href="${waLink(a.client_phone, msgConfirmacionRecibida(a))}" target="_blank" rel="noopener">Enviar confirmación</a>
           <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </div>
@@ -131,8 +152,24 @@ async function loadAgenda() {
 
   host.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const { error } = await supabase.from("appointments").update({ status: btn.dataset.action }).eq("id", btn.dataset.id);
+      const action = btn.dataset.action;
+      const appt = data.find((x) => x.id === btn.dataset.id);
+      const { error } = await supabase.from("appointments").update({ status: action }).eq("id", btn.dataset.id);
       if (error) { showToast("No se pudo actualizar"); console.error(error); return; }
+
+      // Abre WhatsApp con el mensaje correcto ya escrito; el barbero solo debe presionar enviar.
+      if (appt) {
+        if (action === "confirmado") {
+          window.open(waLink(appt.client_phone, msgAceptada(appt)), "_blank");
+        } else if (action === "cancelado") {
+          window.open(waLink(appt.client_phone, msgCancelada(appt)), "_blank");
+        } else if (action === "completado") {
+          const next = data
+            .filter((x) => x.id !== appt.id && x.status !== "cancelado" && x.status !== "completado" && x.start_time > appt.start_time)
+            .sort((x, y) => x.start_time.localeCompare(y.start_time))[0];
+          if (next) window.open(waLink(next.client_phone, msgYaCasi(next)), "_blank");
+        }
+      }
       loadAgenda();
     });
   });
