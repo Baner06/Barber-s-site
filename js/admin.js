@@ -49,12 +49,13 @@ document.querySelector(".admin-tabs").addEventListener("click", (e) => {
   document.getElementById("panelAgenda").classList.toggle("hidden", btn.dataset.panel !== "agenda");
   document.getElementById("panelServicios").classList.toggle("hidden", btn.dataset.panel !== "servicios");
   document.getElementById("panelEquipo").classList.toggle("hidden", btn.dataset.panel !== "equipo");
+  document.getElementById("panelResenas").classList.toggle("hidden", btn.dataset.panel !== "resenas");
 });
 
 let selectedDate = todayISO();
 
 function initApp() {
-  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); return; }
+  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); loadReviewsAdmin(); return; }
   appInitialized = true;
 
   document.getElementById("dateInput").value = selectedDate;
@@ -62,6 +63,7 @@ function initApp() {
   loadAgenda();
   loadServicesAdmin();
   loadBarbersAdmin();
+  loadReviewsAdmin();
 
   document.getElementById("dateInput").addEventListener("change", (e) => {
     selectedDate = e.target.value;
@@ -323,6 +325,48 @@ function openBarberForm(barber) {
     if (error) { showToast("No se pudo guardar"); console.error(error); return; }
     overlay.hidden = true;
     loadBarbersAdmin();
+  });
+}
+
+/* ---------------- Reseñas (moderación) ---------------- */
+function starReviewRow(rating) {
+  return "★".repeat(rating) + "☆".repeat(5 - rating);
+}
+
+async function loadReviewsAdmin() {
+  const host = document.getElementById("reviewsAdminList");
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("id, client_name, rating, comment, approved, created_at, barbers(name)")
+    .order("created_at", { ascending: false });
+
+  if (error) { host.innerHTML = `<div class="empty-state">No se pudieron cargar las reseñas.</div>`; console.error(error); return; }
+  if (!data.length) { host.innerHTML = `<div class="empty-state">Aún no hay reseñas.</div>`; return; }
+
+  host.innerHTML = data.map((r) => `
+    <div class="list-row" style="flex-direction:column; align-items:stretch; gap:8px;">
+      <div>
+        <strong>${escapeHtml(r.client_name)}</strong> · <span style="color:var(--brass-soft);">${starReviewRow(r.rating)}</span>
+        ${r.barbers?.name ? ` · ${escapeHtml(r.barbers.name)}` : ""}
+        ${r.approved ? ' <span class="status-tag status-confirmado">publicada</span>' : ' <span class="status-tag status-pendiente">pendiente</span>'}
+      </div>
+      ${r.comment ? `<p style="margin:0; font-size:13px; color:var(--text-muted);">${escapeHtml(r.comment)}</p>` : ""}
+      <div style="display:flex; gap:6px;">
+        ${!r.approved ? `<button class="btn btn-primary btn-sm" data-approve="${r.id}">Aprobar</button>` : ""}
+        <button class="btn btn-danger btn-sm" data-del-review="${r.id}">Eliminar</button>
+      </div>
+    </div>
+  `).join("");
+
+  host.querySelectorAll("[data-approve]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const { error } = await supabase.from("reviews").update({ approved: true }).eq("id", btn.dataset.approve);
+      if (error) { showToast("No se pudo aprobar"); console.error(error); return; }
+      loadReviewsAdmin();
+    });
+  });
+  host.querySelectorAll("[data-del-review]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteRow("reviews", btn.dataset.delReview, loadReviewsAdmin));
   });
 }
 

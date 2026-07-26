@@ -45,20 +45,33 @@ create table if not exists appointments (
   end_time time not null,
   status text not null default 'pendiente' check (status in ('pendiente','confirmado','cancelado','completado')),
   notes text,
+  -- Código de 6 dígitos entregado al cliente para poder dejar una reseña
+  -- de esa cita puntual (evita reseñas de gente que nunca fue atendida).
+  review_code text,
   created_at timestamptz default now()
 );
 
 create index if not exists idx_appointments_date on appointments(appointment_date);
 create index if not exists idx_appointments_barber on appointments(barber_id);
+create unique index if not exists idx_appointments_review_code on appointments(review_code) where review_code is not null;
 
--- 4. RESEÑAS (opcional, solo lectura pública)
+-- 4. RESEÑAS
+-- approved: las reseñas nuevas entran en false (pendientes) y solo se
+-- muestran en la página pública una vez que el barbero las aprueba desde
+-- el panel admin, para evitar publicar insultos o groserías sin revisar.
 create table if not exists reviews (
   id uuid primary key default gen_random_uuid(),
   client_name text not null,
   rating int not null check (rating between 1 and 5),
   comment text,
+  barber_id uuid references barbers(id) on delete set null,
+  appointment_id uuid references appointments(id) on delete set null,
+  approved boolean not null default false,
   created_at timestamptz default now()
 );
+
+-- Un turno solo puede usarse una vez para dejar reseña.
+create unique index if not exists idx_reviews_appointment_id on reviews(appointment_id) where appointment_id is not null;
 
 -- ============================================================
 -- SEGURIDAD (Row Level Security)
@@ -76,7 +89,19 @@ alter table reviews enable row level security;
 -- Lectura pública de barberos y servicios activos
 create policy "public read barbers" on barbers for select using (true);
 create policy "public read services" on services for select using (true);
-create policy "public read reviews" on reviews for select using (true);
+
+-- El público solo ve reseñas ya aprobadas; el barbero (autenticado) las ve todas
+-- (incluidas las pendientes de moderar).
+create policy "public read approved reviews" on reviews for select using (approved = true);
+create policy "auth read all reviews" on reviews for select using (auth.role() = 'authenticated');
+
+-- Cualquier visitante puede enviar una reseña, pero siempre queda pendiente
+-- de aprobación (no puede insertarla ya aprobada).
+create policy "public insert reviews" on reviews for insert with check (approved = false);
+
+-- Solo el barbero autenticado puede aprobar o eliminar reseñas.
+create policy "auth update reviews" on reviews for update using (auth.role() = 'authenticated');
+create policy "auth delete reviews" on reviews for delete using (auth.role() = 'authenticated');
 
 -- Lectura pública de turnos (necesaria para bloquear horarios ya ocupados)
 create policy "public read appointments" on appointments for select using (true);

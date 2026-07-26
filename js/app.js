@@ -65,12 +65,14 @@ document.getElementById("combosSearch").addEventListener("input", (e) => {
 /* ---------------- Carga de datos ---------------- */
 let SERVICES = [];
 let BARBERS = [];
+let REVIEWS = [];
+let reviewsFilterBarberId = null;
 
 async function loadData() {
   const [{ data: services, error: sErr }, { data: barbers, error: bErr }, { data: reviews, error: rErr }] = await Promise.all([
     supabase.from("services").select("*").eq("active", true).order("sort_order"),
     supabase.from("barbers").select("*").eq("active", true).order("sort_order"),
-    supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(20),
+    supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(50),
   ]);
 
   if (sErr) console.error(sErr);
@@ -79,11 +81,33 @@ async function loadData() {
 
   SERVICES = services || [];
   BARBERS = barbers || [];
+  REVIEWS = reviews || [];
   renderServices(individualServices());
   renderCombos(comboServices());
   renderStaff(BARBERS);
-  renderReviews(reviews || []);
+  renderReviews(visibleReviews());
 }
+
+function visibleReviews() {
+  return reviewsFilterBarberId ? REVIEWS.filter((r) => r.barber_id === reviewsFilterBarberId) : REVIEWS;
+}
+
+function showReviewsForBarber(barberId, barberName) {
+  reviewsFilterBarberId = barberId;
+  document.getElementById("resenasTitle").textContent = `Reseñas de ${barberName}`;
+  document.getElementById("resenasFilterNote").hidden = false;
+  document.querySelector('.tab-btn[data-tab="resenas"]').click();
+  document.getElementById("panel-resenas").scrollIntoView({ behavior: "smooth" });
+  renderReviews(visibleReviews());
+}
+
+document.getElementById("clearBarberFilter").addEventListener("click", (e) => {
+  e.preventDefault();
+  reviewsFilterBarberId = null;
+  document.getElementById("resenasTitle").textContent = "Reseñas";
+  document.getElementById("resenasFilterNote").hidden = true;
+  renderReviews(visibleReviews());
+});
 
 function individualServices() {
   return SERVICES.filter((s) => s.category !== "combo");
@@ -160,7 +184,7 @@ function renderStaff(list) {
     return;
   }
   host.innerHTML = list.map((b) => `
-    <div class="staff-card">
+    <div class="staff-card" data-barber="${b.id}">
       ${b.photo_url
         ? `<img src="${b.photo_url}" alt="${escapeHtml(b.name)}" />`
         : `<div class="staff-avatar">${initials(b.name)}</div>`}
@@ -169,14 +193,46 @@ function renderStaff(list) {
       <div class="rating">★ ${Number(b.rating).toFixed(1)}</div>
     </div>
   `).join("");
+
+  host.querySelectorAll("[data-barber]").forEach((card) => {
+    card.addEventListener("click", () => {
+      const barber = BARBERS.find((b) => b.id === card.dataset.barber);
+      if (barber) openBarberProfile(barber);
+    });
+  });
+}
+
+function openBarberProfile(barber) {
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  sheetContent.innerHTML = `
+    <div style="text-align:center;">
+      ${barber.photo_url
+        ? `<img src="${barber.photo_url}" alt="${escapeHtml(barber.name)}" style="width:140px;height:140px;border-radius:50%;object-fit:cover;margin:0 auto 16px;box-shadow:var(--shadow);" />`
+        : `<div class="staff-avatar" style="width:140px;height:140px;font-size:40px;margin:0 auto 16px;">${initials(barber.name)}</div>`}
+      <h2 id="sheetTitle" style="margin-bottom:2px;">${escapeHtml(barber.name)}</h2>
+      <div style="color:var(--text-muted); margin-bottom:8px;">${escapeHtml(barber.role || "Barbero")}</div>
+      <div style="color:var(--brass-soft); font-weight:700; margin-bottom:20px;">★ ${Number(barber.rating).toFixed(1)}</div>
+      <button class="btn btn-ghost btn-block" id="verResenasBarberoBtn">Ver reseñas de ${escapeHtml(barber.name)} →</button>
+      <button class="btn btn-ghost btn-block" id="closeProfileBtn" style="margin-top:8px;">Cerrar</button>
+    </div>
+  `;
+  sheetContent.querySelector("#verResenasBarberoBtn").addEventListener("click", () => {
+    closeBooking();
+    showReviewsForBarber(barber.id, barber.name);
+  });
+  sheetContent.querySelector("#closeProfileBtn").addEventListener("click", closeBooking);
+}
+
+function starRow(rating) {
+  return [1, 2, 3, 4, 5].map((n) => `<span style="color:${n <= rating ? "var(--brass-soft)" : "var(--line)"};">★</span>`).join("");
 }
 
 function renderReviews(list) {
   document.getElementById("reviewTotal").textContent = `${list.length} reseñas`;
-  if (list.length) {
-    const avg = list.reduce((sum, r) => sum + r.rating, 0) / list.length;
-    document.getElementById("reviewAvg").textContent = avg.toFixed(1);
-  }
+  document.getElementById("reviewAvg").textContent = list.length
+    ? (list.reduce((sum, r) => sum + r.rating, 0) / list.length).toFixed(1)
+    : "5.0";
   const host = document.getElementById("reviewsList");
   if (!list.length) {
     host.innerHTML = `<div class="empty-state"><div class="icon">⭐</div>Todavía no hay reseñas.</div>`;
@@ -185,6 +241,7 @@ function renderReviews(list) {
   host.innerHTML = list.map((r) => `
     <div class="review-card">
       <div class="who">${escapeHtml(r.client_name)}</div>
+      <div style="font-size:13px; margin:2px 0;">${starRow(r.rating)}</div>
       <div class="when">${new Date(r.created_at).toLocaleDateString("es-CO", { month: "long", year: "numeric" })}</div>
       ${r.comment ? `<p>${escapeHtml(r.comment)}</p>` : ""}
     </div>
@@ -207,7 +264,11 @@ function escapeAttrJs(str) {
 const overlay = document.getElementById("sheetOverlay");
 const sheetContent = document.getElementById("sheetContent");
 
-const booking = { serviceId: null, barberId: null, date: null, time: null, name: "", phone: "", email: "" };
+const booking = { serviceId: null, barberId: null, date: null, time: null, name: "", phone: "", email: "", reviewCode: "" };
+
+function generateReviewCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
 
 function openBooking(serviceId) {
   booking.barberId = null;
@@ -474,17 +535,25 @@ async function submitBooking() {
     }
   }
 
-  const { error } = await supabase.from("appointments").insert({
-    client_name: name,
-    client_phone: phone,
-    client_email: email,
-    barber_id: barberId,
-    service_id: service.id,
-    appointment_date: booking.date,
-    start_time: booking.time,
-    end_time: endTime,
-    status: "pendiente",
-  });
+  let reviewCode = generateReviewCode();
+  let error;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    ({ error } = await supabase.from("appointments").insert({
+      client_name: name,
+      client_phone: phone,
+      client_email: email,
+      barber_id: barberId,
+      service_id: service.id,
+      appointment_date: booking.date,
+      start_time: booking.time,
+      end_time: endTime,
+      status: "pendiente",
+      review_code: reviewCode,
+    }));
+    if (!error) break;
+    if (error.code === "23505") { reviewCode = generateReviewCode(); continue; } // código repetido: reintenta con uno nuevo
+    break;
+  }
 
   if (error) {
     console.error(error);
@@ -497,6 +566,7 @@ async function submitBooking() {
   booking.name = name;
   booking.phone = phone;
   booking.email = email;
+  booking.reviewCode = reviewCode;
   stepSuccess();
 }
 
@@ -508,10 +578,155 @@ function stepSuccess() {
       <p style="color:var(--text-muted); font-size:14px; margin:0 0 6px;">
         Te esperamos el ${formatDateEs(booking.date)} a las ${formatTime12h(booking.time)}. Guarda esta confirmación: la reserva quedó a nombre de ${escapeHtml(booking.name)}.
       </p>
+      <div class="summary-box">
+        <div class="row"><span>Tu código para dejar una reseña</span><strong>${booking.reviewCode}</strong></div>
+      </div>
+      <p style="color:var(--text-muted); font-size:12px; margin:0 0 6px;">Guárdalo: lo vas a necesitar después de tu cita si quieres calificarnos.</p>
       <button class="btn btn-primary btn-block" id="doneBtn">Listo</button>
     </div>
   `;
   sheetContent.querySelector("#doneBtn").addEventListener("click", closeBooking);
+}
+
+/* ---------------- Flujo de reseñas ---------------- */
+const reviewDraft = { appointmentId: null, clientName: "", barberId: null, rating: 0 };
+
+document.getElementById("openReviewFormBtn").addEventListener("click", () => {
+  reviewDraft.appointmentId = null;
+  reviewDraft.clientName = "";
+  reviewDraft.barberId = null;
+  reviewDraft.rating = 0;
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  stepReviewCode();
+});
+
+function stepReviewCode() {
+  sheetContent.innerHTML = `
+    <h2 id="sheetTitle">Dejar una reseña</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Ingresa el código de 6 dígitos que recibiste al reservar tu cita.</p>
+    <div class="field">
+      <label for="reviewCodeInput">Código</label>
+      <input type="text" id="reviewCodeInput" inputmode="numeric" maxlength="6" placeholder="Ej. 482913" />
+    </div>
+    <button class="btn btn-primary btn-block" id="reviewCodeNextBtn">Continuar</button>
+    <button class="btn btn-ghost btn-block" id="reviewCancelBtn" style="margin-top:8px;">Cancelar</button>
+  `;
+  sheetContent.querySelector("#reviewCancelBtn").addEventListener("click", closeBooking);
+  sheetContent.querySelector("#reviewCodeNextBtn").addEventListener("click", submitReviewCode);
+  sheetContent.querySelector("#reviewCodeInput").focus();
+}
+
+async function submitReviewCode() {
+  const code = sheetContent.querySelector("#reviewCodeInput").value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    showToast("Escribe el código de 6 dígitos");
+    return;
+  }
+  const btn = document.getElementById("reviewCodeNextBtn");
+  btn.disabled = true;
+  btn.textContent = "Verificando…";
+
+  const { data: appt, error } = await supabase
+    .from("appointments")
+    .select("id, client_name, barber_id")
+    .eq("review_code", code)
+    .maybeSingle();
+
+  if (error || !appt) {
+    showToast("Código no encontrado. Revísalo e intenta de nuevo.");
+    btn.disabled = false;
+    btn.textContent = "Continuar";
+    return;
+  }
+
+  const { data: existingReview } = await supabase
+    .from("reviews")
+    .select("id")
+    .eq("appointment_id", appt.id)
+    .maybeSingle();
+
+  if (existingReview) {
+    showToast("Ese código ya se usó para dejar una reseña.");
+    btn.disabled = false;
+    btn.textContent = "Continuar";
+    return;
+  }
+
+  reviewDraft.appointmentId = appt.id;
+  reviewDraft.clientName = appt.client_name;
+  reviewDraft.barberId = appt.barber_id;
+  stepReviewForm();
+}
+
+function stepReviewForm() {
+  sheetContent.innerHTML = `
+    <h2 id="sheetTitle">Tu reseña</h2>
+    <div class="summary-box"><div class="row"><span>Nombre</span><strong>${escapeHtml(reviewDraft.clientName)}</strong></div></div>
+    <div class="field">
+      <label>Calificación</label>
+      <div id="starPicker" style="display:flex; gap:8px; font-size:30px;">
+        ${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="star-pick" data-star="${n}" style="background:none;border:none;cursor:pointer;color:var(--line);padding:0;">★</button>`).join("")}
+      </div>
+    </div>
+    <div class="field">
+      <label for="reviewCommentInput">Comentario (opcional)</label>
+      <textarea id="reviewCommentInput" placeholder="Cuéntanos tu experiencia"></textarea>
+    </div>
+    <button class="btn btn-primary btn-block" id="submitReviewBtn">Enviar reseña</button>
+    <button class="btn btn-ghost btn-block" id="reviewBackBtn" style="margin-top:8px;">← Volver</button>
+  `;
+  const stars = [...sheetContent.querySelectorAll(".star-pick")];
+  const paintStars = (n) => stars.forEach((s) => { s.style.color = Number(s.dataset.star) <= n ? "var(--brass-soft)" : "var(--line)"; });
+  stars.forEach((s) => {
+    s.addEventListener("click", () => {
+      reviewDraft.rating = Number(s.dataset.star);
+      paintStars(reviewDraft.rating);
+    });
+  });
+  sheetContent.querySelector("#reviewBackBtn").addEventListener("click", stepReviewCode);
+  sheetContent.querySelector("#submitReviewBtn").addEventListener("click", submitReview);
+}
+
+async function submitReview() {
+  const comment = sheetContent.querySelector("#reviewCommentInput").value.trim();
+  if (!reviewDraft.rating) {
+    showToast("Elige una calificación de 1 a 5");
+    return;
+  }
+  const btn = document.getElementById("submitReviewBtn");
+  btn.disabled = true;
+  btn.textContent = "Enviando…";
+
+  const { error } = await supabase.from("reviews").insert({
+    client_name: reviewDraft.clientName,
+    rating: reviewDraft.rating,
+    comment: comment || null,
+    barber_id: reviewDraft.barberId,
+    appointment_id: reviewDraft.appointmentId,
+    approved: false,
+  });
+
+  if (error) {
+    console.error(error);
+    showToast("No se pudo enviar la reseña. Intenta de nuevo.");
+    btn.disabled = false;
+    btn.textContent = "Enviar reseña";
+    return;
+  }
+  stepReviewSuccess();
+}
+
+function stepReviewSuccess() {
+  sheetContent.innerHTML = `
+    <div class="confirm-check">
+      <div class="icon">✓</div>
+      <h2 id="sheetTitle" style="margin:0;">¡Gracias por tu reseña!</h2>
+      <p style="color:var(--text-muted); font-size:14px; margin:0 0 6px;">Se publicará en la página una vez que el barbero la revise.</p>
+      <button class="btn btn-primary btn-block" id="doneReviewBtn">Listo</button>
+    </div>
+  `;
+  sheetContent.querySelector("#doneReviewBtn").addEventListener("click", closeBooking);
 }
 
 function showToast(msg) {

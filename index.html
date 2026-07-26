@@ -83,13 +83,17 @@
 
   <section class="section" id="panel-resenas" hidden>
     <div class="eyebrow">Lo que dicen nuestros clientes</div>
-    <h2 class="section-title">Reseñas</h2>
+    <h2 class="section-title" id="resenasTitle">Reseñas</h2>
+    <p id="resenasFilterNote" hidden style="font-size:13px; margin:-6px 0 12px;"><a href="#" id="clearBarberFilter">← Ver reseñas de todo el equipo</a></p>
     <div class="review-summary">
       <span class="big" id="reviewAvg">5.0</span>
       <span style="color:var(--text-muted); font-size:13px;" id="reviewTotal">0 reseñas</span>
     </div>
+    <button class="btn btn-primary btn-sm" id="openReviewFormBtn" style="margin-bottom:14px;">Dejar una reseña</button>
     <div id="reviewsList"></div>
   </section>
+
+  <div class="diamond-band" aria-hidden="true"></div>
 
   <footer class="site-footer">
     <div class="brand-name" style="font-family:var(--font-display);" id="footerBrand">Studio Barber</div>

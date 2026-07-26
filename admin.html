@@ -67,6 +67,7 @@
     <button class="tab-btn active" data-panel="agenda">Agenda</button>
     <button class="tab-btn" data-panel="servicios">Servicios</button>
     <button class="tab-btn" data-panel="equipo">Equipo</button>
+    <button class="tab-btn" data-panel="resenas">Reseñas</button>
   </nav>
 
   <!-- AGENDA -->
@@ -99,6 +100,13 @@
     <h2 class="section-title">Colaboradores</h2>
     <button class="btn btn-primary btn-sm" id="newBarberBtn" style="margin-bottom:14px;">+ Nuevo colaborador</button>
     <div id="barbersAdminList"></div>
+  </section>
+
+  <!-- RESEÑAS -->
+  <section id="panelResenas" class="admin-section hidden">
+    <h2 class="section-title">Reseñas</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 14px;">Las reseñas nuevas quedan pendientes hasta que las apruebes. Solo las aprobadas se ven en la página pública.</p>
+    <div id="reviewsAdminList"></div>
   </section>
 </div>
 
