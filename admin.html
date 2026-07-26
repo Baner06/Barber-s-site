@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel del barbero</title>
+<meta name="theme-color" content="#121110" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="css/styles.css" />
+<style>
+  .admin-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .admin-header h1 { font-family: var(--font-display); font-size: 22px; margin:0; }
+  .admin-tabs { display:flex; gap:4px; padding: 10px 20px 0; border-bottom:1px solid var(--line); }
+  .day-nav { display:flex; align-items:center; gap:10px; padding: 16px 20px 0; }
+  .day-nav .date-label { font-weight:700; font-size:15px; flex:1; text-transform:capitalize; }
+  .agenda-item { display:flex; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; margin:10px 20px; }
+  .agenda-item .time-col { font-family: var(--font-mono); font-size:13px; color: var(--brass-soft); min-width:52px; }
+  .agenda-item .body { flex:1; min-width:0; }
+  .agenda-item h4 { margin:0 0 2px; font-size:14px; }
+  .agenda-item .sub { font-size:12px; color:var(--text-muted); }
+  .status-tag { font-size:10px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:999px; letter-spacing:.4px; }
+  .status-pendiente { background: rgba(201,162,39,.18); color: var(--brass-soft); }
+  .status-confirmado { background: rgba(92,138,92,.18); color: var(--success); }
+  .status-cancelado { background: rgba(217,123,108,.15); color:#d97b6c; }
+  .status-completado { background: rgba(168,158,140,.18); color: var(--text-muted); }
+  .agenda-actions { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .admin-section { padding: 16px 20px 40px; }
+  .list-row { display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:8px; }
+  .login-wrap { max-width:360px; margin: 15vh auto; padding: 0 20px; }
+  .login-wrap h1 { font-family: var(--font-display); font-size:28px; }
+  .hidden { display:none !important; }
+  .form-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+</style>
+</head>
+<body>
+
+<div class="pole-stripe"></div>
+
+<!-- LOGIN -->
+<div id="loginView" class="login-wrap">
+  <h1>Panel del barbero</h1>
+  <p style="color:var(--text-muted); font-size:14px;">Inicia sesión para gestionar tus turnos.</p>
+  <div class="field">
+    <label for="loginEmail">Correo</label>
+    <input type="email" id="loginEmail" placeholder="tu@correo.com" />
+  </div>
+  <div class="field">
+    <label for="loginPass">Contraseña</label>
+    <input type="password" id="loginPass" />
+  </div>
+  <button class="btn btn-primary btn-block" id="loginBtn">Ingresar</button>
+  <p id="loginError" style="color:#d97b6c; font-size:13px; margin-top:10px;"></p>
+  <p style="color:var(--text-muted); font-size:12px; margin-top:18px;">
+    El usuario se crea desde Supabase → Authentication. Ver README.
+  </p>
+</div>
+
+<!-- APP -->
+<div id="appView" class="hidden">
+  <header class="admin-header">
+    <h1 id="adminBrand">Panel del barbero</h1>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn">Salir</button>
+  </header>
+
+  <nav class="admin-tabs">
+    <button class="tab-btn active" data-panel="agenda">Agenda</button>
+    <button class="tab-btn" data-panel="servicios">Servicios</button>
+    <button class="tab-btn" data-panel="equipo">Equipo</button>
+  </nav>
+
+  <!-- AGENDA -->
+  <section id="panelAgenda">
+    <div class="day-nav">
+      <button class="btn btn-ghost btn-sm" id="prevDay">←</button>
+      <div class="date-label" id="dateLabel">Hoy</div>
+      <input type="date" id="dateInput" />
+      <button class="btn btn-ghost btn-sm" id="nextDay">→</button>
+    </div>
+    <div id="agendaList" style="margin-top:8px;">
+      <div class="empty-state">Cargando turnos…</div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section id="panelServicios" class="admin-section hidden">
+    <h2 class="section-title">Servicios</h2>
+    <button class="btn btn-primary btn-sm" id="newServiceBtn" style="margin-bottom:14px;">+ Nuevo servicio</button>
+    <div id="servicesAdminList"></div>
+  </section>
+
+  <!-- EQUIPO -->
+  <section id="panelEquipo" class="admin-section hidden">
+    <h2 class="section-title">Colaboradores</h2>
+    <button class="btn btn-primary btn-sm" id="newBarberBtn" style="margin-bottom:14px;">+ Nuevo colaborador</button>
+    <div id="barbersAdminList"></div>
+  </section>
+</div>
+
+<!-- Modal genérico para formularios -->
+<div class="sheet-overlay" id="formOverlay" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div id="formContent"></div>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<script src="config.js"></script>
+<script type="module" src="js/admin.js"></script>
+</body>
+</html>

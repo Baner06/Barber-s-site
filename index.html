@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Reservar turno</title>
+<meta name="theme-color" content="#121110" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="css/styles.css" />
+<script src="config.js"></script>
+</head>
+<body>
+
+<div class="pole-stripe"></div>
+
+<header class="hero">
+  <div class="hero-cover" id="heroCover"></div>
+  <div class="hero-body container">
+    <div class="brand-row">
+      <div class="brand-logo" id="brandLogo">SB</div>
+    </div>
+    <h1 class="brand-name" id="brandName">Studio Barber</h1>
+    <p class="brand-tagline" id="brandTagline">Barbería</p>
+
+    <div class="meta-row">
+      <span><span class="rating" id="ratingValue">4.9</span> <span id="ratingCount">(0 reseñas)</span></span>
+      <a id="addressLink" href="#" target="_blank" rel="noopener">Ver dirección</a>
+      <span class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">Consultando horario…</span></span>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="servicios">Servicios</button>
+      <button class="tab-btn" data-tab="combos">Combos</button>
+      <button class="tab-btn" data-tab="equipo">Equipo</button>
+      <button class="tab-btn" data-tab="resenas">Reseñas</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="install-banner" id="installBanner">
+    <span>Instala la app para reservar más rápido</span>
+    <button class="btn btn-primary btn-sm" id="installBtn">Instalar</button>
+  </div>
+
+  <section class="section" id="panel-servicios">
+    <div class="eyebrow">Elige tu servicio</div>
+    <h2 class="section-title">Servicios</h2>
+    <div class="field">
+      <input type="search" id="servicesSearch" placeholder="Buscar un servicio…" />
+    </div>
+    <div id="servicesList">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </section>
+
+  <section class="section" id="panel-combos" hidden>
+    <div class="eyebrow">Ahorra reservando varios servicios juntos</div>
+    <h2 class="section-title">Combos</h2>
+    <div class="field">
+      <input type="search" id="combosSearch" placeholder="Buscar un combo…" />
+    </div>
+    <div id="combosList">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </section>
+
+  <section class="section" id="panel-equipo" hidden>
+    <div class="eyebrow">Nuestro equipo</div>
+    <h2 class="section-title">Colaboradores</h2>
+    <div class="staff-scroller" id="staffList">
+      <div class="skeleton" style="width:128px;flex:0 0 128px;"></div>
+    </div>
+  </section>
+
+  <section class="section" id="panel-resenas" hidden>
+    <div class="eyebrow">Lo que dicen nuestros clientes</div>
+    <h2 class="section-title">Reseñas</h2>
+    <div class="review-summary">
+      <span class="big" id="reviewAvg">5.0</span>
+      <span style="color:var(--text-muted); font-size:13px;" id="reviewTotal">0 reseñas</span>
+    </div>
+    <div id="reviewsList"></div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="brand-name" style="font-family:var(--font-display);" id="footerBrand">Studio Barber</div>
+    <p id="footerTagline">Tu experiencia de cuidado personal en un solo lugar.</p>
+    <nav>
+      <a href="#" data-scroll="panel-servicios">Servicios</a>
+      <a href="#" data-scroll="panel-combos">Combos</a>
+      <a href="#" data-scroll="panel-equipo">Colaboradores</a>
+      <a href="#" data-scroll="panel-resenas">Reseñas</a>
+      <a href="admin.html">Panel del barbero</a>
+    </nav>
+    <div id="footerAddress"></div>
+  </footer>
+</main>
+
+<!-- Hoja de reserva -->
+<div class="sheet-overlay" id="sheetOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent"></div>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<script type="module" src="js/app.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
