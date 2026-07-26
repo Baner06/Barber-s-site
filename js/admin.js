@@ -151,6 +151,7 @@ async function loadAgenda() {
           ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
           ${a.status !== "completado" && a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
           ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
+          ${a.status === "cancelado" ? `<button class="btn btn-danger btn-sm" data-delete-id="${a.id}">Borrar de la agenda</button>` : ""}
           <a class="btn btn-ghost btn-sm" href="${waLink(a.client_phone, msgConfirmacionRecibida(a))}" target="_blank" rel="noopener">Enviar confirmación</a>
           <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
@@ -180,6 +181,10 @@ async function loadAgenda() {
       }
       loadAgenda();
     });
+  });
+
+  host.querySelectorAll("[data-delete-id]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteRow("appointments", btn.dataset.deleteId, loadAgenda));
   });
 }
 
