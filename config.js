@@ -30,6 +30,6 @@ window.BARBER_CONFIG = {
   slotSizeMinutes: 20,
 
   // --- Conexión a Supabase (ver README para crear tu proyecto gratis) ---
-  supabaseUrl: "https://TU-PROYECTO.supabase.co",
-  supabaseAnonKey: "TU-ANON-KEY-PUBLICA",
+  supabaseUrl: "https://ovzzkwtyizzkjgstjezd.supabase.co",
+  supabaseAnonKey: "sb_publishable_n1sxc5EWmP1STjiLS8vM_g_-QRPjbE2",
 };
