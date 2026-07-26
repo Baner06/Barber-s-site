@@ -504,7 +504,7 @@ function stepSuccess() {
       <div class="icon">✓</div>
       <h2 id="sheetTitle" style="margin:0;">¡Turno reservado!</h2>
       <p style="color:var(--text-muted); font-size:14px; margin:0 0 6px;">
-        Te esperamos el ${formatDateEs(booking.date)} a las ${formatTime12h(booking.time)}. Guarda esta confirmación: la reserva quedó a nombre de ${escapeHtml(booking.email)}.
+        Te esperamos el ${formatDateEs(booking.date)} a las ${formatTime12h(booking.time)}. Guarda esta confirmación: la reserva quedó a nombre de ${escapeHtml(booking.name)}.
       </p>
       <button class="btn btn-primary btn-block" id="doneBtn">Listo</button>
     </div>

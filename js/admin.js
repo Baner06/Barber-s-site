@@ -101,10 +101,18 @@ function msgConfirmacionRecibida(a) {
   return `Hola ${a.client_name}, tu cita en ${cfg.businessName} quedó registrada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} (${a.services?.name || "servicio"}). Cualquier cambio, escríbenos por este medio. ¡Te esperamos!`;
 }
 function msgAceptada(a) {
-  return `Hola ${a.client_name}, tu cita del ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} en ${cfg.businessName} ya fue confirmada. Solo queda esperar el día y la hora agendada. ¡Nos vemos pronto!`;
+  return `Estimado/a ${a.client_name},
+
+Le confirmamos que su cita en ${cfg.businessName} ha sido agendada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)}.
+
+Agradecemos su preferencia y quedamos a su disposición ante cualquier cambio. ¡Será un placer atenderle!`;
 }
 function msgCancelada(a) {
-  return `Hola ${a.client_name}, lamentamos informarte que tu cita del ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} en ${cfg.businessName} fue cancelada, ya que en este momento no podemos brindarte el servicio. Te pedimos disculpas por el inconveniente y con gusto te ayudamos a agendar un nuevo horario cuando gustes.`;
+  return `Hola, ${a.client_name}.
+
+Lamentamos informarte que tu cita programada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} en ${cfg.businessName} ha sido cancelada debido a inconvenientes con nuestra disponibilidad.
+
+Te ofrecemos una sincera disculpa por las molestias causadas. Si deseas programar una nueva fecha u horario, quedamos a tu entera disposición para ayudarte.`;
 }
 function msgYaCasi(a) {
   return `Hola ${a.client_name}, te contamos que tu barbero ya casi termina con el cliente anterior. Tu cita es a las ${formatTime12h(a.start_time)} en ${cfg.businessName}, así que puedes ir acercándote. ¡Nos vemos en un momento!`;
