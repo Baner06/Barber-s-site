@@ -1,4 +1,4 @@
-import { supabase, formatCOP, todayISO, hoursForDate, buildSlots, timeToMinutes, minutesToTime } from "./supabase-client.js";
+import { supabase, formatCOP, todayISO, hoursForDate, buildSlots, timeToMinutes, minutesToTime, formatTime12h } from "./supabase-client.js";
 
 const cfg = window.BARBER_CONFIG;
 
@@ -34,7 +34,7 @@ if (cfg.coverUrl) {
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const isOpen = nowMinutes >= timeToMinutes(today.open) && nowMinutes < timeToMinutes(today.close);
   pill.classList.toggle("open", isOpen);
-  text.textContent = isOpen ? `Abierto · cierra ${today.close}` : `Cerrado · abre ${today.open}`;
+  text.textContent = isOpen ? `Abierto · cierra ${formatTime12h(today.close)}` : `Cerrado · abre ${formatTime12h(today.open)}`;
 })();
 
 /* ---------------- Tabs ---------------- */
@@ -208,13 +208,19 @@ const sheetContent = document.getElementById("sheetContent");
 const booking = { serviceId: null, barberId: null, date: null, time: null, name: "", phone: "", email: "" };
 
 function openBooking(serviceId) {
-  booking.serviceId = serviceId || SERVICES[0]?.id;
   booking.barberId = null;
   booking.date = null;
   booking.time = null;
   overlay.hidden = false;
   document.body.style.overflow = "hidden";
-  stepService();
+  if (serviceId) {
+    // El cliente ya eligió el servicio desde su tarjeta: no volver a preguntar.
+    booking.serviceId = serviceId;
+    goToBarberOrDateTime();
+  } else {
+    booking.serviceId = SERVICES[0]?.id;
+    stepService();
+  }
 }
 
 function closeBooking() {
@@ -369,8 +375,13 @@ async function renderSlots() {
 
   const busyRanges = (existing || []).map((a) => [timeToMinutes(a.start_time), timeToMinutes(a.end_time)]);
 
+  // Si la fecha elegida es hoy, no ofrecer horarios que ya pasaron (o que empiezan ahora mismo).
+  const now = new Date();
+  const nowMinutes = booking.date === todayISO() ? now.getHours() * 60 + now.getMinutes() : -1;
+
   const freeSlots = allSlots.filter((slot) => {
     const start = timeToMinutes(slot);
+    if (start <= nowMinutes) return false;
     const end = start + service.duration_minutes;
     return !busyRanges.some(([bStart, bEnd]) => start < bEnd && end > bStart);
   });
@@ -380,7 +391,7 @@ async function renderSlots() {
     return;
   }
 
-  grid.innerHTML = freeSlots.map((s) => `<button class="chip slot-choice" data-time="${s}">${s}</button>`).join("");
+  grid.innerHTML = freeSlots.map((s) => `<button class="chip slot-choice" data-time="${s}">${formatTime12h(s)}</button>`).join("");
   grid.querySelectorAll(".slot-choice").forEach((btn) => {
     btn.addEventListener("click", () => {
       grid.querySelectorAll(".slot-choice").forEach((b) => b.classList.remove("selected"));
@@ -411,7 +422,7 @@ function stepContact() {
       <div class="row"><span>Servicio</span><strong>${escapeHtml(currentService()?.name)}</strong></div>
       <div class="row"><span>Barbero</span><strong>${currentBarber() ? escapeHtml(currentBarber().name) : "Cualquiera disponible"}</strong></div>
       <div class="row"><span>Fecha</span><strong>${formatDateEs(booking.date)}</strong></div>
-      <div class="row"><span>Hora</span><strong>${booking.time}</strong></div>
+      <div class="row"><span>Hora</span><strong>${formatTime12h(booking.time)}</strong></div>
       <div class="row"><span>Precio</span><strong>${formatCOP(currentService()?.price)}</strong></div>
     </div>
     <button class="btn btn-primary btn-block" id="confirmBtn">Confirmar turno</button>
@@ -493,7 +504,7 @@ function stepSuccess() {
       <div class="icon">✓</div>
       <h2 id="sheetTitle" style="margin:0;">¡Turno reservado!</h2>
       <p style="color:var(--text-muted); font-size:14px; margin:0 0 6px;">
-        Te esperamos el ${formatDateEs(booking.date)} a las ${booking.time}. Guarda esta confirmación: la reserva quedó a nombre de ${escapeHtml(booking.email)}.
+        Te esperamos el ${formatDateEs(booking.date)} a las ${formatTime12h(booking.time)}. Guarda esta confirmación: la reserva quedó a nombre de ${escapeHtml(booking.email)}.
       </p>
       <button class="btn btn-primary btn-block" id="doneBtn">Listo</button>
     </div>

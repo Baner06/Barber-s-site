@@ -1,4 +1,4 @@
-import { supabase, formatCOP, todayISO } from "./supabase-client.js";
+import { supabase, formatCOP, todayISO, formatTime12h } from "./supabase-client.js";
 
 const cfg = window.BARBER_CONFIG;
 document.getElementById("adminBrand").textContent = `${cfg.businessName} · Panel`;
@@ -114,7 +114,7 @@ async function loadAgenda() {
 
   host.innerHTML = data.map((a) => `
     <div class="agenda-item">
-      <div class="time-col">${a.start_time.slice(0,5)}<br/>${a.end_time.slice(0,5)}</div>
+      <div class="time-col">${formatTime12h(a.start_time)}<br/>${formatTime12h(a.end_time)}</div>
       <div class="body">
         <h4>${escapeHtml(a.client_name)} <span class="status-tag status-${a.status}">${a.status}</span></h4>
         <div class="sub">${escapeHtml(a.services?.name || "Servicio eliminado")} · ${escapeHtml(a.barbers?.name || "Sin asignar")} · ${a.services ? formatCOP(a.services.price) : ""}</div>

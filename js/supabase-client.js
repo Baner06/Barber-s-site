@@ -61,3 +61,13 @@ export function timeToMinutes(t) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
+
+// "14:05" (o "14:05:00") -> "2:05 PM"
+export function formatTime12h(t) {
+  const [hStr, mStr] = t.split(":");
+  let h = Number(hStr);
+  const period = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${mStr} ${period}`;
+}

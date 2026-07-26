@@ -23,7 +23,7 @@ window.BARBER_CONFIG = {
     jueves:    { open: "08:00", close: "19:00", closed: false },
     viernes:   { open: "08:00", close: "19:00", closed: false },
     sabado:    { open: "08:00", close: "19:00", closed: false },
-    domingo:   { open: "09:30", close: "15:00", closed: false },
+    domingo:   { open: "09:30", close: "15:00", closed: true },
   },
 
   // --- Duración de cada slot de la agenda (minutos) ---
