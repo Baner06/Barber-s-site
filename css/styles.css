@@ -66,6 +66,18 @@ button { font-family: inherit; cursor: pointer; }
   background-size: 200% 100%;
 }
 
+/* ---------- Franja de rombos (divisor bajo el encabezado) ---------- */
+.diamond-band {
+  height: 44px;
+  width: 100%;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(45deg, var(--cream) 25%, transparent 25%, transparent 75%, var(--cream) 75%, var(--cream)),
+    linear-gradient(45deg, var(--cream) 25%, transparent 25%, transparent 75%, var(--cream) 75%, var(--cream));
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
 /* ---------- Header / Hero ---------- */
 .hero {
   position: relative;
