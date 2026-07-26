@@ -212,6 +212,11 @@ button { font-family: inherit; cursor: pointer; }
   position: fixed; inset: 0; background: rgba(10,9,8,0.6);
   display: flex; align-items: flex-end; justify-content: center; z-index: 50;
 }
+/* El atributo `hidden` empata en especificidad con la regla de arriba;
+   sin esto, el overlay queda visible (y capturando clics) aunque esté "hidden". */
+.sheet-overlay[hidden] {
+  display: none;
+}
 .sheet {
   background: var(--surface); width: 100%; max-width: 480px;
   border-radius: 20px 20px 0 0; padding: 20px 20px 28px;
