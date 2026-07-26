@@ -270,6 +270,8 @@ button { font-family: inherit; cursor: pointer; }
 .site-footer nav { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0; }
 .site-footer nav a { text-decoration: none; color: var(--text-muted); }
 .site-footer nav a:hover { color: var(--brass-soft); }
+.site-footer .legal-line { margin: 14px 0 0; font-size: 12px; }
+.site-footer .dev-credit { margin: 4px 0 0; font-size: 11px; opacity: 0.7; }
 
 /* ---------- Utilidades ---------- */
 .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }

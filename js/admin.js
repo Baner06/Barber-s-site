@@ -121,7 +121,9 @@ function msgYaCasi(a) {
 /* ---------------- Agenda ---------------- */
 async function loadAgenda() {
   const host = document.getElementById("agendaList");
+  const completedHost = document.getElementById("completadosList");
   host.innerHTML = `<div class="empty-state">Cargando turnos…</div>`;
+  completedHost.innerHTML = `<div class="empty-state">Cargando…</div>`;
 
   const { data, error } = await supabase
     .from("appointments")
@@ -131,33 +133,53 @@ async function loadAgenda() {
 
   if (error) {
     host.innerHTML = `<div class="empty-state">No se pudieron cargar los turnos.</div>`;
+    completedHost.innerHTML = "";
     console.error(error);
     return;
   }
 
-  if (!data.length) {
-    host.innerHTML = `<div class="empty-state"><div class="icon">🗓️</div>No hay turnos este día.</div>`;
-    return;
-  }
+  const active = data.filter((a) => a.status !== "completado");
+  const completed = data.filter((a) => a.status === "completado");
 
-  host.innerHTML = data.map((a) => `
-    <div class="agenda-item">
-      <div class="time-col">${formatTime12h(a.start_time)}<br/>${formatTime12h(a.end_time)}</div>
-      <div class="body">
-        <h4>${escapeHtml(a.client_name)} <span class="status-tag status-${a.status}">${a.status}</span></h4>
-        <div class="sub">${escapeHtml(a.services?.name || "Servicio eliminado")} · ${escapeHtml(a.barbers?.name || "Sin asignar")} · ${a.services ? formatCOP(a.services.price) : ""}</div>
-        <div class="sub">📞 ${escapeHtml(a.client_phone)} · ✉️ ${escapeHtml(a.client_email || "sin correo")}</div>
-        <div class="agenda-actions">
-          ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
-          ${a.status !== "completado" && a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
-          ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
-          ${a.status === "cancelado" ? `<button class="btn btn-danger btn-sm" data-delete-id="${a.id}">Borrar de la agenda</button>` : ""}
-          <a class="btn btn-ghost btn-sm" href="${waLink(a.client_phone, msgConfirmacionRecibida(a))}" target="_blank" rel="noopener">Enviar confirmación</a>
-          <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
+  if (!active.length) {
+    host.innerHTML = `<div class="empty-state"><div class="icon">🗓️</div>No hay turnos este día.</div>`;
+  } else {
+    host.innerHTML = active.map((a) => `
+      <div class="agenda-item">
+        <div class="time-col">${formatTime12h(a.start_time)}<br/>${formatTime12h(a.end_time)}</div>
+        <div class="body">
+          <h4>${escapeHtml(a.client_name)} <span class="status-tag status-${a.status}">${a.status}</span></h4>
+          <div class="sub">${escapeHtml(a.services?.name || "Servicio eliminado")} · ${escapeHtml(a.barbers?.name || "Sin asignar")} · ${a.services ? formatCOP(a.services.price) : ""}</div>
+          <div class="sub">📞 ${escapeHtml(a.client_phone)} · ✉️ ${escapeHtml(a.client_email || "sin correo")}</div>
+          <div class="agenda-actions">
+            ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
+            ${a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
+            ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
+            ${a.status === "cancelado" ? `<button class="btn btn-danger btn-sm" data-delete-id="${a.id}">Borrar de la agenda</button>` : ""}
+            <a class="btn btn-ghost btn-sm" href="${waLink(a.client_phone, msgConfirmacionRecibida(a))}" target="_blank" rel="noopener">Enviar confirmación</a>
+            <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
+          </div>
         </div>
       </div>
-    </div>
-  `).join("");
+    `).join("");
+  }
+
+  if (!completed.length) {
+    completedHost.innerHTML = `<div class="empty-state"><div class="icon">✅</div>Todavía no hay servicios completados hoy.</div>`;
+  } else {
+    completedHost.innerHTML = completed.map((a) => `
+      <div class="agenda-item">
+        <div class="time-col">${formatTime12h(a.start_time)}<br/>${formatTime12h(a.end_time)}</div>
+        <div class="body">
+          <h4>${escapeHtml(a.client_name)}</h4>
+          <div class="sub">${escapeHtml(a.services?.name || "Servicio eliminado")} · ${a.services ? formatCOP(a.services.price) : ""}</div>
+          <div class="agenda-actions">
+            <button class="btn btn-danger btn-sm" data-delete-id="${a.id}">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  }
 
   host.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -183,7 +205,7 @@ async function loadAgenda() {
     });
   });
 
-  host.querySelectorAll("[data-delete-id]").forEach((btn) => {
+  [...host.querySelectorAll("[data-delete-id]"), ...completedHost.querySelectorAll("[data-delete-id]")].forEach((btn) => {
     btn.addEventListener("click", () => deleteRow("appointments", btn.dataset.deleteId, loadAgenda));
   });
 }

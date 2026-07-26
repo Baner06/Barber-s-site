@@ -11,6 +11,8 @@ document.title = `Reservar en ${cfg.businessName}`;
 document.getElementById("addressLink").textContent = cfg.address;
 document.getElementById("addressLink").href = cfg.mapsUrl;
 document.getElementById("footerAddress").innerHTML = `<a href="${cfg.mapsUrl}" target="_blank" rel="noopener">${cfg.address}</a>`;
+document.getElementById("footerYear").textContent = new Date().getFullYear();
+document.getElementById("footerRights").textContent = cfg.businessName;
 
 if (cfg.logoUrl) {
   document.getElementById("brandLogo").innerHTML = `<img src="${cfg.logoUrl}" alt="${cfg.businessName}" />`;
