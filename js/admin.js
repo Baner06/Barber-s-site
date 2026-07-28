@@ -14,11 +14,27 @@ async function checkSession() {
     loginView.classList.add("hidden");
     appView.classList.remove("hidden");
     initApp();
+    maybeShowTutorial();
   } else {
     loginView.classList.remove("hidden");
     appView.classList.add("hidden");
   }
 }
+
+/* ---------------- Tutorial de bienvenida ---------------- */
+const tutorialOverlay = document.getElementById("tutorialOverlay");
+function maybeShowTutorial() {
+  if (!localStorage.getItem("adminTutorialSeen")) {
+    tutorialOverlay.hidden = false;
+  }
+}
+document.getElementById("tutorialCloseBtn").addEventListener("click", () => {
+  localStorage.setItem("adminTutorialSeen", "1");
+  tutorialOverlay.hidden = true;
+});
+document.getElementById("helpBtn").addEventListener("click", () => {
+  tutorialOverlay.hidden = false;
+});
 
 document.getElementById("loginBtn").addEventListener("click", async () => {
   const email = document.getElementById("loginEmail").value.trim();

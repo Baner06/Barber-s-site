@@ -60,7 +60,10 @@
 <div id="appView" class="hidden">
   <header class="admin-header">
     <h1 id="adminBrand">Panel del barbero</h1>
-    <button class="btn btn-ghost btn-sm" id="logoutBtn">Salir</button>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-ghost btn-sm" id="helpBtn">Ayuda</button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Salir</button>
+    </div>
   </header>
 
   <nav class="admin-tabs">
@@ -108,6 +111,40 @@
     <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 14px;">Las reseñas nuevas quedan pendientes hasta que las apruebes. Solo las aprobadas se ven en la página pública.</p>
     <div id="reviewsAdminList"></div>
   </section>
+</div>
+
+<!-- Tutorial de bienvenida -->
+<div class="sheet-overlay" id="tutorialOverlay" hidden>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div style="padding: 4px 4px 8px;">
+      <h2 class="section-title" style="margin-top:0;">Bienvenido a tu panel</h2>
+      <p style="color:var(--text-muted); font-size:14px; margin-top:-6px;">Una guía rápida antes de empezar.</p>
+
+      <div class="list-row" style="align-items:flex-start; flex-direction:column; gap:4px;">
+        <strong>📅 Agenda</strong>
+        <span style="font-size:13px; color:var(--text-muted);">Aquí ves los turnos del día. Cambia de fecha con las flechas o el calendario, y marca cada turno como completado o cancelado.</span>
+      </div>
+      <div class="list-row" style="align-items:flex-start; flex-direction:column; gap:4px;">
+        <strong>✂️ Servicios</strong>
+        <span style="font-size:13px; color:var(--text-muted);">Agrega, edita o elimina los servicios y combos que ofreces, junto con su precio y duración.</span>
+      </div>
+      <div class="list-row" style="align-items:flex-start; flex-direction:column; gap:4px;">
+        <strong>👥 Equipo</strong>
+        <span style="font-size:13px; color:var(--text-muted);">Agrega a tus colaboradores para que los clientes puedan elegir con quién reservar.</span>
+      </div>
+      <div class="list-row" style="align-items:flex-start; flex-direction:column; gap:4px;">
+        <strong>⭐ Reseñas</strong>
+        <span style="font-size:13px; color:var(--text-muted);">Las reseñas nuevas quedan pendientes hasta que las aprobás aquí. Solo las aprobadas se ven en la página pública.</span>
+      </div>
+      <div class="list-row" style="align-items:flex-start; flex-direction:column; gap:4px;">
+        <strong>🚪 Salir</strong>
+        <span style="font-size:13px; color:var(--text-muted);">Usa el botón "Salir" arriba a la derecha para cerrar tu sesión cuando termines. Puedes volver a ver esta guía con el botón "Ayuda".</span>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="tutorialCloseBtn" style="margin-top:10px;">Entendido, empezar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal genérico para formularios -->
