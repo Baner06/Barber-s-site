@@ -123,7 +123,9 @@ function msgAceptada(a) {
 
 Le confirmamos que su cita en ${cfg.businessName} ha sido agendada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)}.
 
-Agradecemos su preferencia y quedamos a su disposición ante cualquier cambio. ¡Será un placer atenderle!`;
+Agradecemos su preferencia y quedamos a su disposición ante cualquier cambio. ¡Será un placer atenderle!
+
+Su código para dejar una reseña después de la cita es: ${a.review_code || "—"}`;
 }
 function msgCancelada(a) {
   return `Hola, ${a.client_name}.
@@ -145,7 +147,7 @@ async function loadAgenda() {
 
   const { data, error } = await supabase
     .from("appointments")
-    .select("id, client_name, client_phone, client_email, start_time, end_time, status, notes, services(name, price), barbers(name)")
+    .select("id, client_name, client_phone, client_email, start_time, end_time, status, notes, review_code, services(name, price), barbers(name)")
     .eq("appointment_date", selectedDate)
     .order("start_time");
 
