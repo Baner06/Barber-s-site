@@ -55,7 +55,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Firma: franja de poste de barbería ---------- */
 .pole-stripe {
-  height: 44px;
+  height: 6px;
   width: 100%;
   background: repeating-linear-gradient(
     -45deg,
