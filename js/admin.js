@@ -88,6 +88,7 @@ function initApp() {
   });
   document.getElementById("prevDay").addEventListener("click", () => shiftDay(-1));
   document.getElementById("nextDay").addEventListener("click", () => shiftDay(1));
+  document.getElementById("toggleBlockDayBtn").addEventListener("click", toggleBlockDay);
 
   document.getElementById("newServiceBtn").addEventListener("click", () => openServiceForm());
   document.getElementById("newBarberBtn").addEventListener("click", () => openBarberForm());
@@ -138,8 +139,33 @@ function msgYaCasi(a) {
   return `Hola ${a.client_name}, te contamos que tu barbero ya casi termina con el cliente anterior. Tu cita es a las ${formatTime12h(a.start_time)} en ${cfg.businessName}, así que puedes ir acercándote. ¡Nos vemos en un momento!`;
 }
 
+/* ---------------- Bloqueo de día completo ---------------- */
+let currentBlockedId = null;
+async function refreshBlockStatus() {
+  const { data, error } = await supabase.from("blocked_dates").select("id").eq("blocked_date", selectedDate).maybeSingle();
+  if (error) { console.error(error); return; }
+  currentBlockedId = data?.id || null;
+  document.getElementById("toggleBlockDayBtn").textContent = currentBlockedId ? "Desbloquear este día" : "Bloquear este día";
+  document.getElementById("blockedDayNote").style.display = currentBlockedId ? "inline-block" : "none";
+}
+
+async function toggleBlockDay() {
+  if (currentBlockedId) {
+    const { error } = await supabase.from("blocked_dates").delete().eq("id", currentBlockedId);
+    if (error) { showToast("No se pudo desbloquear"); console.error(error); return; }
+    showToast("Día desbloqueado");
+  } else {
+    if (!confirm(`¿Bloquear el ${selectedDate}? No se podrán reservar turnos nuevos ese día.`)) return;
+    const { error } = await supabase.from("blocked_dates").insert({ blocked_date: selectedDate });
+    if (error) { showToast("No se pudo bloquear"); console.error(error); return; }
+    showToast("Día bloqueado");
+  }
+  refreshBlockStatus();
+}
+
 /* ---------------- Agenda ---------------- */
 async function loadAgenda() {
+  refreshBlockStatus();
   const host = document.getElementById("agendaList");
   const completedHost = document.getElementById("completadosList");
   host.innerHTML = `<div class="empty-state">Cargando turnos…</div>`;
@@ -170,7 +196,7 @@ async function loadAgenda() {
         <div class="body">
           <h4>${escapeHtml(a.client_name)} <span class="status-tag status-${a.status}">${a.status}</span></h4>
           <div class="sub">${escapeHtml(a.services?.name || "Servicio eliminado")} · ${escapeHtml(a.barbers?.name || "Sin asignar")} · ${a.services ? formatCOP(a.services.price) : ""}</div>
-          <div class="sub">📞 ${escapeHtml(a.client_phone)} · ✉️ ${escapeHtml(a.client_email || "sin correo")}</div>
+          <div class="sub">📞 ${escapeHtml(a.client_phone)}</div>
           <div class="agenda-actions">
             ${a.status !== "confirmado" && a.status !== "cancelado" ? `<button class="btn btn-primary btn-sm" data-action="confirmado" data-id="${a.id}">Confirmar</button>` : ""}
             ${a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}

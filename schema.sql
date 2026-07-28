@@ -73,6 +73,16 @@ create table if not exists reviews (
 -- Un turno solo puede usarse una vez para dejar reseña.
 create unique index if not exists idx_reviews_appointment_id on reviews(appointment_id) where appointment_id is not null;
 
+-- 5. DÍAS BLOQUEADOS
+-- Permite al barbero cerrar un día completo (vacaciones, festivo, imprevisto)
+-- sin tener que cancelar cita por cita ni tocar el horario semanal fijo.
+create table if not exists blocked_dates (
+  id uuid primary key default gen_random_uuid(),
+  blocked_date date not null unique,
+  reason text,
+  created_at timestamptz default now()
+);
+
 -- ============================================================
 -- SEGURIDAD (Row Level Security)
 -- Los clientes (anónimos) pueden: leer barberos/servicios/reseñas activos,
@@ -85,6 +95,7 @@ alter table barbers enable row level security;
 alter table services enable row level security;
 alter table appointments enable row level security;
 alter table reviews enable row level security;
+alter table blocked_dates enable row level security;
 
 -- Lectura pública de barberos y servicios activos
 create policy "public read barbers" on barbers for select using (true);
@@ -121,6 +132,13 @@ create policy "auth manage barbers delete" on barbers for delete using (auth.rol
 create policy "auth manage services insert" on services for insert with check (auth.role() = 'authenticated');
 create policy "auth manage services update" on services for update using (auth.role() = 'authenticated');
 create policy "auth manage services delete" on services for delete using (auth.role() = 'authenticated');
+
+-- Lectura pública de días bloqueados (el sitio necesita saberlo para no ofrecer horarios)
+create policy "public read blocked_dates" on blocked_dates for select using (true);
+
+-- Solo el barbero autenticado puede bloquear/desbloquear días
+create policy "auth manage blocked_dates insert" on blocked_dates for insert with check (auth.role() = 'authenticated');
+create policy "auth manage blocked_dates delete" on blocked_dates for delete using (auth.role() = 'authenticated');
 
 -- ============================================================
 -- DATOS DE EJEMPLO (puedes borrarlos luego desde el panel admin)

@@ -12,7 +12,7 @@ window.BARBER_CONFIG = {
   coverUrl: "photos/fondo-barberia.png", // foto de portada del interior de la barbería
   address: "TODO: escribe aquí tu dirección real",
   mapsUrl: "https://maps.google.com/?q=TU-DIRECCION-AQUI",
-  whatsapp: "573000000000", // TODO: reemplaza por el WhatsApp real, sin '+', con indicativo de país
+  whatsapp: "573235591395",
 
   // --- Horario ---
   // open/close en formato 24h "HH:MM", closed: true si no abre ese día

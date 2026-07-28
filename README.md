@@ -69,6 +69,7 @@ Alternativas igual de válidas: Vercel, GitHub Pages, o cualquier hosting estát
 
 **Barbero (panel):**
 - **Agenda**: navega por día, ve todos los turnos, y con un toque los confirma, cancela o marca como completados. Botón directo a WhatsApp del cliente.
+- **Bloquear un día**: con el botón "Bloquear este día" en la Agenda, cierra un día completo (vacaciones, festivo, imprevisto) sin cancelar cita por cita; ese día deja de ofrecerse en la reserva pública.
 - **Servicios**: agrega, edita o elimina servicios y precios.
 - **Equipo**: agrega o edita colaboradores.
 

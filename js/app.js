@@ -424,6 +424,12 @@ async function renderSlots() {
     return;
   }
 
+  const { data: blocked } = await supabase.from("blocked_dates").select("id").eq("blocked_date", booking.date).maybeSingle();
+  if (blocked) {
+    grid.innerHTML = `<span style="color:var(--text-muted); font-size:13px;">No hay atención ese día. Elige otra fecha.</span>`;
+    return;
+  }
+
   const allSlots = buildSlots(booking.date, service.duration_minutes);
 
   let query = supabase
@@ -477,10 +483,6 @@ function stepContact() {
       <label for="phoneInput">Teléfono / WhatsApp</label>
       <input type="tel" id="phoneInput" placeholder="Ej. 3001234567" value="${escapeHtml(booking.phone)}" />
     </div>
-    <div class="field">
-      <label for="emailInput">Correo electrónico</label>
-      <input type="email" id="emailInput" placeholder="Ej. juan@correo.com" value="${escapeHtml(booking.email)}" />
-    </div>
     <div class="summary-box">
       <div class="row"><span>Servicio</span><strong>${escapeHtml(currentService()?.name)}</strong></div>
       <div class="row"><span>Barbero</span><strong>${currentBarber() ? escapeHtml(currentBarber().name) : "Cualquiera disponible"}</strong></div>
@@ -502,13 +504,8 @@ function formatDateEs(dateStr) {
 async function submitBooking() {
   const name = document.getElementById("nameInput").value.trim();
   const phone = document.getElementById("phoneInput").value.trim();
-  const email = document.getElementById("emailInput").value.trim();
-  if (!name || !phone || !email) {
-    showToast("Completa tu nombre, teléfono y correo");
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showToast("Escribe un correo válido");
+  if (!name || !phone) {
+    showToast("Completa tu nombre y teléfono");
     return;
   }
   const btn = document.getElementById("confirmBtn");
@@ -541,7 +538,7 @@ async function submitBooking() {
     ({ error } = await supabase.from("appointments").insert({
       client_name: name,
       client_phone: phone,
-      client_email: email,
+      client_email: "", // apartado deshabilitado por ahora; la columna queda lista para reactivarlo a futuro
       barber_id: barberId,
       service_id: service.id,
       appointment_date: booking.date,
@@ -565,7 +562,6 @@ async function submitBooking() {
 
   booking.name = name;
   booking.phone = phone;
-  booking.email = email;
   booking.reviewCode = reviewCode;
   stepSuccess();
 }
