@@ -113,8 +113,11 @@ function updateDateLabel() {
 function formatDateEsShort(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 }
+function stripEmojis(text) {
+  return text.replace(/[\p{Extended_Pictographic}️‍]/gu, "").replace(/[ \t]{2,}/g, " ").trim();
+}
 function waLink(phone, message) {
-  return `https://wa.me/${coWhatsappDigits(phone)}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${coWhatsappDigits(phone)}?text=${encodeURIComponent(stripEmojis(message))}`;
 }
 function msgConfirmacionRecibida(a) {
   return `Hola ${a.client_name}, tu cita en ${cfg.businessName} quedó registrada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} (${a.services?.name || "servicio"}). Cualquier cambio, escríbenos por este medio. ¡Te esperamos!`;
