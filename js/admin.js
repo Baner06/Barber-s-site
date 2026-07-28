@@ -21,18 +21,47 @@ async function checkSession() {
   }
 }
 
-/* ---------------- Tutorial de bienvenida ---------------- */
+/* ---------------- Tutorial de bienvenida (paso a paso) ---------------- */
 const tutorialOverlay = document.getElementById("tutorialOverlay");
+const tutorialSlides = [...document.querySelectorAll(".tutorial-slide")];
+const tutorialPrevBtn = document.getElementById("tutorialPrevBtn");
+const tutorialNextBtn = document.getElementById("tutorialNextBtn");
+const tutorialCloseBtn = document.getElementById("tutorialCloseBtn");
+const tutorialStepLabel = document.getElementById("tutorialStepLabel");
+let tutorialStep = 1;
+
+function renderTutorialStep() {
+  tutorialSlides.forEach((slide) => { slide.hidden = Number(slide.dataset.step) !== tutorialStep; });
+  tutorialStepLabel.textContent = `Paso ${tutorialStep} de ${tutorialSlides.length}`;
+  tutorialPrevBtn.style.display = tutorialStep > 1 ? "" : "none";
+  const isLast = tutorialStep === tutorialSlides.length;
+  tutorialNextBtn.style.display = isLast ? "none" : "";
+  tutorialCloseBtn.style.display = isLast ? "" : "none";
+}
+
 function maybeShowTutorial() {
   if (!localStorage.getItem("adminTutorialSeen")) {
+    tutorialStep = 1;
+    renderTutorialStep();
     tutorialOverlay.hidden = false;
   }
 }
-document.getElementById("tutorialCloseBtn").addEventListener("click", () => {
+
+tutorialNextBtn.addEventListener("click", () => {
+  if (tutorialStep < tutorialSlides.length) tutorialStep++;
+  renderTutorialStep();
+});
+tutorialPrevBtn.addEventListener("click", () => {
+  if (tutorialStep > 1) tutorialStep--;
+  renderTutorialStep();
+});
+tutorialCloseBtn.addEventListener("click", () => {
   localStorage.setItem("adminTutorialSeen", "1");
   tutorialOverlay.hidden = true;
 });
 document.getElementById("helpBtn").addEventListener("click", () => {
+  tutorialStep = 1;
+  renderTutorialStep();
   tutorialOverlay.hidden = false;
 });
 
