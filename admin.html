@@ -72,6 +72,7 @@
     <button class="tab-btn" data-panel="equipo">Equipo</button>
     <button class="tab-btn" data-panel="resenas">Reseñas</button>
     <button class="tab-btn" data-panel="galeria">Galería</button>
+    <button class="tab-btn" data-panel="redes">Redes</button>
   </nav>
 
   <!-- AGENDA -->
@@ -131,6 +132,21 @@
     </div>
     <button class="btn btn-primary btn-sm" id="uploadPortfolioBtn" style="margin-bottom:14px;">Subir foto</button>
     <div id="portfolioAdminGrid" class="portfolio-grid"></div>
+  </section>
+
+  <!-- REDES SOCIALES -->
+  <section id="panelRedes" class="admin-section hidden">
+    <h2 class="section-title">Redes sociales</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 14px;">Pega el link de tu perfil y aparecerá como ícono en el pie de página de tu web. Déjalo vacío para que ese ícono no se muestre.</p>
+    <div class="field">
+      <label for="settingsInstagramInput">Instagram</label>
+      <input type="url" id="settingsInstagramInput" placeholder="https://instagram.com/tu_barberia" />
+    </div>
+    <div class="field">
+      <label for="settingsFacebookInput">Facebook</label>
+      <input type="url" id="settingsFacebookInput" placeholder="https://facebook.com/tu_barberia" />
+    </div>
+    <button class="btn btn-primary btn-sm" id="saveSettingsBtn">Guardar</button>
   </section>
 </div>
 

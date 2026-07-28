@@ -16,11 +16,13 @@ document.getElementById("footerRights").textContent = cfg.businessName;
 
 const INSTAGRAM_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c2.7 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.76 1.15.55.54.89 1.1 1.15 1.76.25.64.42 1.37.47 2.43C22 8.94 22 9.3 22 12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.6 4.6 0 0 1-1.15 1.76 4.6 4.6 0 0 1-1.76 1.15c-.64.25-1.37.42-2.43.47C15.06 22 14.7 22 12 22s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.6 4.6 0 0 1-1.76-1.15 4.6 4.6 0 0 1-1.15-1.76c-.25-.64-.42-1.37-.47-2.43C2 15.06 2 14.7 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.76a4.6 4.6 0 0 1 1.76-1.15c.64-.25 1.37-.42 2.43-.47C8.94 2 9.3 2 12 2Zm0 3.4A6.6 6.6 0 1 0 12 18.6 6.6 6.6 0 0 0 12 5.4Zm0 2.16a4.44 4.44 0 1 1 0 8.88 4.44 4.44 0 0 1 0-8.88Zm5.6-3.24a1.06 1.06 0 1 1 0 2.12 1.06 1.06 0 0 1 0-2.12Z"/></svg>`;
 const FACEBOOK_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 21v-7.2h2.4l.4-2.8h-2.8v-1.8c0-.8.2-1.4 1.4-1.4h1.5V5.3c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8V11H8v2.8h2.5V21h3Z"/></svg>`;
-const socialLinksHtml = [
-  cfg.instagramUrl ? `<a href="${cfg.instagramUrl}" target="_blank" rel="noopener" aria-label="Instagram">${INSTAGRAM_ICON}</a>` : "",
-  cfg.facebookUrl ? `<a href="${cfg.facebookUrl}" target="_blank" rel="noopener" aria-label="Facebook">${FACEBOOK_ICON}</a>` : "",
-].join("");
-document.getElementById("socialLinks").innerHTML = socialLinksHtml;
+
+function renderSocialLinks(settings) {
+  document.getElementById("socialLinks").innerHTML = [
+    settings?.instagram_url ? `<a href="${settings.instagram_url}" target="_blank" rel="noopener" aria-label="Instagram">${INSTAGRAM_ICON}</a>` : "",
+    settings?.facebook_url ? `<a href="${settings.facebook_url}" target="_blank" rel="noopener" aria-label="Facebook">${FACEBOOK_ICON}</a>` : "",
+  ].join("");
+}
 
 if (cfg.logoUrl) {
   document.getElementById("brandLogo").innerHTML = `<img src="${cfg.logoUrl}" alt="${cfg.businessName}" />`;
@@ -77,17 +79,19 @@ let REVIEWS = [];
 let reviewsFilterBarberId = null;
 
 async function loadData() {
-  const [{ data: services, error: sErr }, { data: barbers, error: bErr }, { data: reviews, error: rErr }, { data: portfolio, error: pErr }] = await Promise.all([
+  const [{ data: services, error: sErr }, { data: barbers, error: bErr }, { data: reviews, error: rErr }, { data: portfolio, error: pErr }, { data: settings, error: setErr }] = await Promise.all([
     supabase.from("services").select("*").eq("active", true).order("sort_order"),
     supabase.from("barbers").select("*").eq("active", true).order("sort_order"),
     supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(50),
     supabase.from("portfolio_items").select("*").order("created_at", { ascending: false }),
+    supabase.from("settings").select("instagram_url, facebook_url").eq("id", 1).maybeSingle(),
   ]);
 
   if (sErr) console.error(sErr);
   if (bErr) console.error(bErr);
   if (rErr) console.error(rErr);
   if (pErr) console.error(pErr);
+  if (setErr) console.error(setErr);
 
   SERVICES = services || [];
   BARBERS = barbers || [];
@@ -97,6 +101,7 @@ async function loadData() {
   renderStaff(BARBERS);
   renderReviews(visibleReviews());
   renderPortfolio(portfolio || []);
+  renderSocialLinks(settings);
 }
 
 function renderPortfolio(list) {

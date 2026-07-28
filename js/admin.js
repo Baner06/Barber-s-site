@@ -96,12 +96,13 @@ document.querySelector(".admin-tabs").addEventListener("click", (e) => {
   document.getElementById("panelEquipo").classList.toggle("hidden", btn.dataset.panel !== "equipo");
   document.getElementById("panelResenas").classList.toggle("hidden", btn.dataset.panel !== "resenas");
   document.getElementById("panelGaleria").classList.toggle("hidden", btn.dataset.panel !== "galeria");
+  document.getElementById("panelRedes").classList.toggle("hidden", btn.dataset.panel !== "redes");
 });
 
 let selectedDate = todayISO();
 
 function initApp() {
-  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); loadReviewsAdmin(); loadPortfolioAdmin(); return; }
+  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); loadReviewsAdmin(); loadPortfolioAdmin(); loadSettingsAdmin(); return; }
   appInitialized = true;
 
   document.getElementById("dateInput").value = selectedDate;
@@ -111,6 +112,7 @@ function initApp() {
   loadBarbersAdmin();
   loadReviewsAdmin();
   loadPortfolioAdmin();
+  loadSettingsAdmin();
 
   document.getElementById("dateInput").addEventListener("change", (e) => {
     selectedDate = e.target.value;
@@ -124,6 +126,7 @@ function initApp() {
   document.getElementById("newServiceBtn").addEventListener("click", () => openServiceForm());
   document.getElementById("newBarberBtn").addEventListener("click", () => openBarberForm());
   document.getElementById("uploadPortfolioBtn").addEventListener("click", uploadPortfolioPhoto);
+  document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings);
 }
 
 function shiftDay(delta) {
@@ -509,6 +512,25 @@ async function uploadPortfolioPhoto() {
   document.getElementById("portfolioCaptionInput").value = "";
   showToast("Foto subida");
   loadPortfolioAdmin();
+}
+
+/* ---------------- Redes sociales ---------------- */
+async function loadSettingsAdmin() {
+  const { data, error } = await supabase.from("settings").select("instagram_url, facebook_url").eq("id", 1).maybeSingle();
+  if (error) { console.error(error); return; }
+  document.getElementById("settingsInstagramInput").value = data?.instagram_url || "";
+  document.getElementById("settingsFacebookInput").value = data?.facebook_url || "";
+}
+
+async function saveSettings() {
+  const instagramUrl = document.getElementById("settingsInstagramInput").value.trim();
+  const facebookUrl = document.getElementById("settingsFacebookInput").value.trim();
+  const { error } = await supabase.from("settings").update({
+    instagram_url: instagramUrl || null,
+    facebook_url: facebookUrl || null,
+  }).eq("id", 1);
+  if (error) { showToast("No se pudo guardar"); console.error(error); return; }
+  showToast("Redes guardadas");
 }
 
 async function deleteRow(table, id, refresh) {

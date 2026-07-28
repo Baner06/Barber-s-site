@@ -13,10 +13,8 @@ window.BARBER_CONFIG = {
   address: "TODO: escribe aquí tu dirección real",
   mapsUrl: "https://maps.google.com/?q=TU-DIRECCION-AQUI",
   whatsapp: "573235591395",
-
-  // --- Redes sociales (déjalas vacías "" si aún no tienes esa red; el ícono no se muestra) ---
-  instagramUrl: "",
-  facebookUrl: "",
+  // Nota: las redes sociales (Instagram/Facebook) ya no se configuran aquí —
+  // se agregan desde el panel del barbero, pestaña "Redes".
 
   // --- Horario ---
   // open/close en formato 24h "HH:MM", closed: true si no abre ese día

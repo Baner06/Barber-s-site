@@ -97,6 +97,18 @@ create table if not exists portfolio_items (
   created_at timestamptz default now()
 );
 
+-- 7. CONFIGURACIÓN DEL NEGOCIO (fila única)
+-- Por ahora solo guarda las redes sociales, editables desde el panel
+-- del barbero sin tener que tocar código.
+create table if not exists settings (
+  id int primary key default 1,
+  instagram_url text,
+  facebook_url text,
+  updated_at timestamptz default now(),
+  constraint settings_singleton check (id = 1)
+);
+insert into settings (id) values (1) on conflict (id) do nothing;
+
 -- ============================================================
 -- SEGURIDAD (Row Level Security)
 -- Los clientes (anónimos) pueden: leer barberos/servicios/reseñas activos,
@@ -111,6 +123,7 @@ alter table appointments enable row level security;
 alter table reviews enable row level security;
 alter table blocked_dates enable row level security;
 alter table portfolio_items enable row level security;
+alter table settings enable row level security;
 
 -- Lectura pública de barberos y servicios activos
 create policy "public read barbers" on barbers for select using (true);
@@ -164,6 +177,10 @@ create policy "auth manage portfolio_items delete" on portfolio_items for delete
 create policy "public read portfolio bucket" on storage.objects for select using (bucket_id = 'portfolio');
 create policy "auth upload portfolio bucket" on storage.objects for insert with check (bucket_id = 'portfolio' and auth.role() = 'authenticated');
 create policy "auth delete portfolio bucket" on storage.objects for delete using (bucket_id = 'portfolio' and auth.role() = 'authenticated');
+
+-- Lectura pública de la configuración (redes sociales); solo el barbero autenticado la edita
+create policy "public read settings" on settings for select using (true);
+create policy "auth update settings" on settings for update using (auth.role() = 'authenticated');
 
 -- ============================================================
 -- DATOS DE EJEMPLO (puedes borrarlos luego desde el panel admin)
