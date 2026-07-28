@@ -109,11 +109,14 @@ document.getElementById("clearBarberFilter").addEventListener("click", (e) => {
   renderReviews(visibleReviews());
 });
 
+function byPopularFirst(list) {
+  return list.slice().sort((a, b) => (b.popular ? 1 : 0) - (a.popular ? 1 : 0));
+}
 function individualServices() {
-  return SERVICES.filter((s) => s.category !== "combo");
+  return byPopularFirst(SERVICES.filter((s) => s.category !== "combo"));
 }
 function comboServices() {
-  return SERVICES.filter((s) => s.category === "combo");
+  return byPopularFirst(SERVICES.filter((s) => s.category === "combo"));
 }
 function filterByName(list, query) {
   const q = query.trim().toLowerCase();
