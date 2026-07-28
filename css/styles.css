@@ -63,7 +63,6 @@ button { font-family: inherit; cursor: pointer; }
     var(--cream) 14px, var(--cream) 28px,
     var(--brick) 28px, var(--brick) 42px
   );
-  background-size: 200% 100%;
 }
 
 /* ---------- Franja de rombos (divisor bajo el encabezado) ---------- */
