@@ -288,7 +288,7 @@ button { font-family: inherit; cursor: pointer; }
 .site-footer .social-links { display: flex; justify-content: center; gap: 14px; margin: 10px 0 0; }
 .site-footer .social-links a { color: var(--text-muted); display: inline-flex; }
 .site-footer .social-links a:hover { color: var(--brass-soft); }
-.site-footer .social-links svg { width: 20px; height: 20px; fill: currentColor; }
+.site-footer .social-links svg { width: 32px; height: 32px; fill: currentColor; }
 
 /* ---------- Galería de trabajos ---------- */
 .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
