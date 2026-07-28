@@ -71,6 +71,7 @@
     <button class="tab-btn" data-panel="servicios">Servicios</button>
     <button class="tab-btn" data-panel="equipo">Equipo</button>
     <button class="tab-btn" data-panel="resenas">Reseñas</button>
+    <button class="tab-btn" data-panel="galeria">Galería</button>
   </nav>
 
   <!-- AGENDA -->
@@ -114,6 +115,22 @@
     <h2 class="section-title">Reseñas</h2>
     <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 14px;">Las reseñas nuevas quedan pendientes hasta que las apruebes. Solo las aprobadas se ven en la página pública.</p>
     <div id="reviewsAdminList"></div>
+  </section>
+
+  <!-- GALERÍA -->
+  <section id="panelGaleria" class="admin-section hidden">
+    <h2 class="section-title">Galería de trabajos</h2>
+    <p style="color:var(--text-muted); font-size:13px; margin:-6px 0 14px;">Sube fotos de trabajos de los que estés orgulloso. Se muestran en tu página pública, en la pestaña "Trabajos".</p>
+    <div class="field">
+      <label for="portfolioFileInput">Foto</label>
+      <input type="file" id="portfolioFileInput" accept="image/*" />
+    </div>
+    <div class="field">
+      <label for="portfolioCaptionInput">Descripción (opcional)</label>
+      <input type="text" id="portfolioCaptionInput" placeholder="Ej. Degradado + barba" />
+    </div>
+    <button class="btn btn-primary btn-sm" id="uploadPortfolioBtn" style="margin-bottom:14px;">Subir foto</button>
+    <div id="portfolioAdminGrid" class="portfolio-grid"></div>
   </section>
 </div>
 

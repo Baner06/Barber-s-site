@@ -83,6 +83,20 @@ create table if not exists blocked_dates (
   created_at timestamptz default now()
 );
 
+-- 6. GALERÍA DE TRABAJOS
+-- Fotos que el barbero sube desde el panel para mostrar en la página pública.
+-- image_url es la URL pública para mostrarla; storage_path es la ruta dentro
+-- del bucket, para poder borrar el archivo cuando se elimina la fila.
+insert into storage.buckets (id, name, public) values ('portfolio', 'portfolio', true) on conflict (id) do nothing;
+
+create table if not exists portfolio_items (
+  id uuid primary key default gen_random_uuid(),
+  image_url text not null,
+  storage_path text not null,
+  caption text,
+  created_at timestamptz default now()
+);
+
 -- ============================================================
 -- SEGURIDAD (Row Level Security)
 -- Los clientes (anónimos) pueden: leer barberos/servicios/reseñas activos,
@@ -96,6 +110,7 @@ alter table services enable row level security;
 alter table appointments enable row level security;
 alter table reviews enable row level security;
 alter table blocked_dates enable row level security;
+alter table portfolio_items enable row level security;
 
 -- Lectura pública de barberos y servicios activos
 create policy "public read barbers" on barbers for select using (true);
@@ -139,6 +154,16 @@ create policy "public read blocked_dates" on blocked_dates for select using (tru
 -- Solo el barbero autenticado puede bloquear/desbloquear días
 create policy "auth manage blocked_dates insert" on blocked_dates for insert with check (auth.role() = 'authenticated');
 create policy "auth manage blocked_dates delete" on blocked_dates for delete using (auth.role() = 'authenticated');
+
+-- Lectura pública de la galería de trabajos; solo el barbero autenticado sube o borra fotos
+create policy "public read portfolio_items" on portfolio_items for select using (true);
+create policy "auth manage portfolio_items insert" on portfolio_items for insert with check (auth.role() = 'authenticated');
+create policy "auth manage portfolio_items delete" on portfolio_items for delete using (auth.role() = 'authenticated');
+
+-- Bucket de almacenamiento de la galería (mismas reglas: lectura pública, escritura solo autenticado)
+create policy "public read portfolio bucket" on storage.objects for select using (bucket_id = 'portfolio');
+create policy "auth upload portfolio bucket" on storage.objects for insert with check (bucket_id = 'portfolio' and auth.role() = 'authenticated');
+create policy "auth delete portfolio bucket" on storage.objects for delete using (bucket_id = 'portfolio' and auth.role() = 'authenticated');
 
 -- ============================================================
 -- DATOS DE EJEMPLO (puedes borrarlos luego desde el panel admin)

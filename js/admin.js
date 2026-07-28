@@ -95,12 +95,13 @@ document.querySelector(".admin-tabs").addEventListener("click", (e) => {
   document.getElementById("panelServicios").classList.toggle("hidden", btn.dataset.panel !== "servicios");
   document.getElementById("panelEquipo").classList.toggle("hidden", btn.dataset.panel !== "equipo");
   document.getElementById("panelResenas").classList.toggle("hidden", btn.dataset.panel !== "resenas");
+  document.getElementById("panelGaleria").classList.toggle("hidden", btn.dataset.panel !== "galeria");
 });
 
 let selectedDate = todayISO();
 
 function initApp() {
-  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); loadReviewsAdmin(); return; }
+  if (appInitialized) { loadAgenda(); loadServicesAdmin(); loadBarbersAdmin(); loadReviewsAdmin(); loadPortfolioAdmin(); return; }
   appInitialized = true;
 
   document.getElementById("dateInput").value = selectedDate;
@@ -109,6 +110,7 @@ function initApp() {
   loadServicesAdmin();
   loadBarbersAdmin();
   loadReviewsAdmin();
+  loadPortfolioAdmin();
 
   document.getElementById("dateInput").addEventListener("change", (e) => {
     selectedDate = e.target.value;
@@ -121,6 +123,7 @@ function initApp() {
 
   document.getElementById("newServiceBtn").addEventListener("click", () => openServiceForm());
   document.getElementById("newBarberBtn").addEventListener("click", () => openBarberForm());
+  document.getElementById("uploadPortfolioBtn").addEventListener("click", uploadPortfolioPhoto);
 }
 
 function shiftDay(delta) {
@@ -440,6 +443,72 @@ async function loadReviewsAdmin() {
   host.querySelectorAll("[data-del-review]").forEach((btn) => {
     btn.addEventListener("click", () => deleteRow("reviews", btn.dataset.delReview, loadReviewsAdmin));
   });
+}
+
+/* ---------------- Galería de trabajos ---------------- */
+async function loadPortfolioAdmin() {
+  const host = document.getElementById("portfolioAdminGrid");
+  const { data, error } = await supabase.from("portfolio_items").select("*").order("created_at", { ascending: false });
+  if (error) { host.innerHTML = `<div class="empty-state">No se pudo cargar la galería.</div>`; console.error(error); return; }
+  if (!data.length) { host.innerHTML = `<div class="empty-state">Aún no has subido fotos.</div>`; return; }
+
+  host.innerHTML = data.map((p) => `
+    <div class="portfolio-item">
+      <img src="${p.image_url}" alt="${escapeAttr(p.caption || 'Trabajo')}" loading="lazy" />
+      ${p.caption ? `<div class="caption">${escapeHtml(p.caption)}</div>` : ""}
+      <button class="del-btn" data-del-portfolio="${p.id}" data-storage-path="${escapeAttr(p.storage_path)}" aria-label="Eliminar">✕</button>
+    </div>
+  `).join("");
+
+  host.querySelectorAll("[data-del-portfolio]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("¿Eliminar esta foto? Esta acción no se puede deshacer.")) return;
+      await supabase.storage.from("portfolio").remove([btn.dataset.storagePath]);
+      const { error: delError } = await supabase.from("portfolio_items").delete().eq("id", btn.dataset.delPortfolio);
+      if (delError) { showToast("No se pudo eliminar"); console.error(delError); return; }
+      loadPortfolioAdmin();
+    });
+  });
+}
+
+async function uploadPortfolioPhoto() {
+  const fileInput = document.getElementById("portfolioFileInput");
+  const caption = document.getElementById("portfolioCaptionInput").value.trim();
+  const file = fileInput.files[0];
+  if (!file) { showToast("Elige una foto primero"); return; }
+
+  const btn = document.getElementById("uploadPortfolioBtn");
+  btn.disabled = true;
+  btn.textContent = "Subiendo…";
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+  const storagePath = `${Date.now()}-${safeName}`;
+
+  const { error: uploadError } = await supabase.storage.from("portfolio").upload(storagePath, file);
+  if (uploadError) {
+    showToast("No se pudo subir la foto");
+    console.error(uploadError);
+    btn.disabled = false;
+    btn.textContent = "Subir foto";
+    return;
+  }
+
+  const { data: urlData } = supabase.storage.from("portfolio").getPublicUrl(storagePath);
+  const { error: insertError } = await supabase.from("portfolio_items").insert({
+    image_url: urlData.publicUrl,
+    storage_path: storagePath,
+    caption: caption || null,
+  });
+
+  btn.disabled = false;
+  btn.textContent = "Subir foto";
+
+  if (insertError) { showToast("No se pudo guardar la foto"); console.error(insertError); return; }
+
+  fileInput.value = "";
+  document.getElementById("portfolioCaptionInput").value = "";
+  showToast("Foto subida");
+  loadPortfolioAdmin();
 }
 
 async function deleteRow(table, id, refresh) {
