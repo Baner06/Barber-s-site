@@ -119,9 +119,6 @@ function stripEmojis(text) {
 function waLink(phone, message) {
   return `https://wa.me/${coWhatsappDigits(phone)}?text=${encodeURIComponent(stripEmojis(message))}`;
 }
-function msgConfirmacionRecibida(a) {
-  return `Hola ${a.client_name}, tu cita en ${cfg.businessName} quedó registrada para el ${formatDateEsShort(selectedDate)} a las ${formatTime12h(a.start_time)} (${a.services?.name || "servicio"}). Cualquier cambio, escríbenos por este medio. ¡Te esperamos!`;
-}
 function msgAceptada(a) {
   return `Estimado/a ${a.client_name},
 
@@ -205,7 +202,6 @@ async function loadAgenda() {
             ${a.status !== "cancelado" ? `<button class="btn btn-ghost btn-sm" data-action="completado" data-id="${a.id}">Completar</button>` : ""}
             ${a.status !== "cancelado" ? `<button class="btn btn-danger btn-sm" data-action="cancelado" data-id="${a.id}">Cancelar</button>` : ""}
             ${a.status === "cancelado" ? `<button class="btn btn-danger btn-sm" data-delete-id="${a.id}">Borrar de la agenda</button>` : ""}
-            <a class="btn btn-ghost btn-sm" href="${waLink(a.client_phone, msgConfirmacionRecibida(a))}" target="_blank" rel="noopener">Enviar confirmación</a>
             <a class="btn btn-ghost btn-sm" href="https://wa.me/${coWhatsappDigits(a.client_phone)}" target="_blank" rel="noopener">WhatsApp</a>
           </div>
         </div>
